@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vue Sample</title>
+  <!-- CDNからVueを使用 -->
+  <script src="https://unpkg.com/vue@2.5.21"></script>
+</head>
+
+<body>
+  <!-- vmインスタンス -->
+  <div id="app">
+    <h3>########dataオプション</h3>
+    <p>{{}} ←これをマスタッシュ(口髭)記法という。</p>
+    <p>Msg1: {{ message1 }}</p>
+    <p>Msg2: {{ message2 }}</p>
+    <p>Total: {{ totalNum }}</p>
+    <hr>
+
+    <h3>########watchオプション　$watchメソッド</h3>
+    <p>Msg1を変更</p>
+    <form name="form_msg1">
+      <input type="text" name="message">
+    </form>
+    <form>
+      <input type="button" value="click" onclick="messageMod()">
+    </form>
+    <p>Totalに加算</p>
+    <form name="form_total">
+      <input type="number" name="num">
+    </form>
+    <form>
+      <input type="button" value="click" onclick="sum()">
+    </form>
+    <hr>
+
+    <h3>########ディレクティブ</h3>
+    <!-- HTMLの属性に値を設定できるVue独自の機能。 -->
+
+    <h4>####v-bindディレクティブ</h4>
+    <!-- HTMLタグ内で指定した属性に値を設定できる。 -->
+    <p v-bind:title="titleMsg">マウスポインターを当ててください。</p>
+    <!-- 省略記法 -->
+    <p :title="titleMsg">マウスポインターを当ててください(省略記法)。</p>
+
+    <h4>####v-onディレクティブ & methodsオプション</h4>
+    <!-- v-on:  要素にイベントリスナを結びつける。 -->
+    <!-- methodsオプションで設定したメソッドを呼び出す。 -->
+    <!-- !!!!! WARNING !!!!!
+      イベント属性ではなく、DOMイベントを指定する点に注意。
+      例: onclick ではなく click を指定する。 -->
+    <button v-on:click="clickLog">Log</button>
+    <!-- v-on: の省略記法は @ -->
+    <p @mouseenter="hoverLog">Please hover!</p>
+
+    <h4>####v-showディレクティブ　v-ifディレクティブ</h4>
+    <!-- HTML要素の表示・非表示を管理 -->
+    <div>
+      <label>
+        <!-- v-model  checkboxの状態を指定したdataで管理 -->
+        <input type="checkbox" v-model="reserve">予約する
+      </label>
+    </div>
+    <!-- v-show  指定したdataがtrueなら表示、falseなら非表示 -->
+    <!-- iiiii CHECK iiiii
+      falseでは、属性にstyle="display: none;"を付与して非表示にする。
+      切り替え回数が【多い時】に推奨。　レンダリングのコスト: 低 -->
+    <div v-show="reserve">
+      v-show 予約日: <input type="date">
+    </div>
+    <!-- v-if  指定したdataがtrueなら表示、falseなら非表示 -->
+    <!-- iiiii CHECK iiiii
+      falseでは、要素そのものを消す。
+      切り替え回数が【少ない時】に推奨。　レンダリングのコスト: 高 -->
+    <div v-if="reserve">
+      v-if 予約日: <input type="date">
+    </div>
+
+    <h4>####v-if, v-else-if, v-elseディレクティブ</h4>
+    <!-- javascriptのif文のように条件分岐可能
+      必ず連続する要素で構成すること -->
+    <div v-if="ifMsg">
+      {{ ifMsg }}
+    </div>
+    <div v-else-if="ifMsg === ''">
+      メッセージが空文字です。
+    </div>
+    <div v-else>
+      メッセージがありません。
+    </div>
+
+    <h4>####v-forディレクティブ</h4>
+    <!-- 配列のデータを使い、要素を繰り返してレンダリングする。 -->
+    <ol>
+      <!-- dataのtodos配列の各要素をtodoに格納する。 -->
+      <!-- iiiii CHECK iiiii
+        v-forは一意のkeyで管理することが推奨されている。 -->
+      <li v-for="todo in todos" :key="todo.id">
+        <label>
+          <!-- changeイベント => 状態の変更時に発生。
+            methodsオプションからtoggle()を呼び出す。 -->
+          <!-- checked属性 => checkboxまたはradioで使用。
+            初期状態を管理。 -->
+          <input type="checkbox"
+            @change="toggle(todo)"
+            :checked="todo.done">
+          <!-- 完了済み(チェック有り)の場合。delタグ(取り消し線)で表示-->
+          <del v-if="todo.done">
+            {{ todo.text }}
+          </del>
+          <span v-else>
+            {{ todo.text }}
+          </span>
+        </label>
+      </li>
+    </ol>
+
+    <h4>####v-modelディレクティブ　双方向バインディング</h4>
+    <!-- input要素などの値とdataの値を連動させる。
+      HTML側でも、javascript側でも、値の変更が可能。 -->
+    <div>
+      <label>
+        <span>名前: </span>
+        <input type="text" v-model="name">
+      </label>
+    </div>
+    <div>
+      <label>
+        <span>メールアドレス: </span>
+        <input type="text" v-model="email">
+      </label>
+    </div>
+    <div>
+      <label>
+        <span>お問い合わせ内容: </span>
+        <textarea v-model="text" rows="5"></textarea>
+      </label>
+    </div>
+    <button @click="submit">送信</button>
+
+    <hr>
+
+    <h3>########フィルター</h3>
+    <!-- filtersオプションのnumberWithDelimiter()により
+      priceを3桁区切りで表示 -->
+    <p>合計 {{ price | numberWithDelimiter }}円</p>
+    <hr>
+
+    <h3>########computedオプション(算出プロパティ)</h3>
+    <button :disabled="buttonDisabled">
+      <!-- マスタッシュではメソッドも()を付けない -->
+      {{ buttonLabel }}
+    </button>
+    <button onclick="buttonDisabledChange()">
+      Change
+    </button>
+    <hr>
+  </div>
+
+  <!-- vm2インスタンス -->
+  <div id="app2"></div>
+  <hr>
+
+  <!-- vm3インスタンス -->
+  <div id="app3">
+    <g-user-list></g-user-list>
+  </div>
+
+  <!-- vm4インスタンス -->
+  <div id="app4">
+    <lo-user-list></lo-user-list>
+  </div>
+
+  <!-- vm5インスタンス -->
+  <div id="app5">
+    <user-detail></user-detail>
+  </div>
+
+  <!-- Vueのソースファイルを指定 -->
+  <script src="./index.js"></script>
+</body>
+
+</html>
